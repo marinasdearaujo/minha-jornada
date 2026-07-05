@@ -182,7 +182,7 @@
 
   <!-- ============ HOJE ============ -->
   <section class="page on" id="p-hoje">
-    <h2 class="sec">Meu foco desta semana</h2>
+    <h2 class="sec">Meu foco do mês</h2>
     <div class="hint">As metas que você definiu na aba Jornada. Marque conforme conquista.</div>
     <div id="weekFocus"></div>
 
@@ -208,20 +208,20 @@
     </div>
 
     <h2 class="sec">Objetivos em cascata</h2>
-    <div class="hint">Do trimestre desce pro mês, e do mês pra semana. Cada nível serve o de cima.</div>
+    <div class="hint">Do trimestre desce pro objetivo do mês, e dele pras metas concretas do mês. Cada nível serve o de cima.</div>
     <div class="cascade">
       <div class="casc c-q">
         <div class="lbl"><b>🎯 Trimestre</b><span id="qLabel"></span></div>
         <textarea class="fld" id="goalQuarter" placeholder="Objetivo de longo prazo deste trimestre..."></textarea>
       </div>
       <div class="casc c-m">
-        <div class="lbl"><b>🌙 Mês</b><span id="mLabel"></span></div>
+        <div class="lbl"><b>🌙 Objetivo do mês</b><span id="mLabel"></span></div>
         <textarea class="fld" id="goalMonth" placeholder="Objetivo de curto prazo deste mês..."></textarea>
       </div>
       <div class="casc c-w">
-        <div class="lbl"><b>📆 Semana</b><span>metas concretas</span></div>
+        <div class="lbl"><b>✅ Metas do mês</b><span id="mLabel2">metas concretas</span></div>
         <div id="weekMetas"></div>
-        <button class="addlink" onclick="addMeta()">+ meta da semana</button>
+        <button class="addlink" onclick="addMeta()">+ meta do mês</button>
       </div>
     </div>
 
@@ -286,12 +286,15 @@
     <h2 class="sec">Conquistas</h2>
     <div class="ach-grid" id="achs"></div>
 
+    <h2 class="sec">Sincronização na nuvem</h2>
+    <div id="cloudCard"></div>
+
     <button class="btnp" style="margin-top:16px" onclick="saveAll()">💾 Salvar tudo</button>
 
     <div class="footlinks">
       <a onclick="exportData()">exportar backup</a>
       <a onclick="importData()">importar</a>
-      <a onclick="newWeek()">nova semana</a>
+      <a onclick="newMonth()">novo mês</a>
     </div>
     <div class="depend" style="margin-top:16px">"Se o Senhor não edificar a casa, em vão trabalham os que a edificam." — Sl 127:1</div>
   </section>
@@ -408,16 +411,18 @@ function load(){
       challenges:DEFAULT_CHALLENGES.map(c=>({...c,ratings:[]})),
       habits:DEFAULT_HABITS.map(h=>({...h,last:null,streak:0})),
       diary:[],
-      log:[], xp:0, achDone:[], weekKey:weekKey(),
+      log:[], xp:0, achDone:[], weekKey:monthKey(),
     };
     save(s);
   }
   if(!s.challenges) s.challenges=DEFAULT_CHALLENGES.map(c=>({...c,ratings:[]}));
-  if(s.weekKey!==weekKey()){ s.week.forEach(m=>m.done=false); s.weekKey=weekKey(); }
+  if(s.weekKey!==monthKey()){ s.week.forEach(m=>m.done=false); s.weekKey=monthKey(); }
   return s;
 }
-function save(s){ try{ localStorage.setItem(KEY,JSON.stringify(s||S)); }
-  catch(e){ alert('Armazenamento cheio (provavelmente fotos). Exporte um backup e remova fotos antigas.'); } }
+function save(s){ if(!s){ S.updatedAt=Date.now(); }
+  try{ localStorage.setItem(KEY,JSON.stringify(s||S)); }
+  catch(e){ alert('Armazenamento cheio (provavelmente fotos). Exporte um backup e remova fotos antigas.'); }
+  if(!s) cloudPushDebounced(); }
 
 // ---------- helpers ----------
 function lvl(xp){ let level=1,need=100,acc=0; while(xp>=acc+need){acc+=need;level++;need=Math.round(need*1.3);}
@@ -426,6 +431,7 @@ function titleFor(L){ let t=TITLES[0]; for(const x of TITLES) if(L>=x[0]) t=x; r
 function dayStr(d){ d=d||new Date(); return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate(); }
 function weekKey(){ const d=new Date(),on=new Date(d.getFullYear(),0,1);
   const w=Math.ceil((((d-on)/86400000)+on.getDay()+1)/7); return d.getFullYear()+'-w'+w; }
+function monthKey(){ const d=new Date(); return d.getFullYear()+'-m'+d.getMonth(); }
 function streak(s){ s=s||S; const days=new Set(s.log.map(l=>l.day)); let c=0,d=new Date();
   if(!days.has(dayStr(d))) d.setDate(d.getDate()-1);
   while(days.has(dayStr(d))){ c++; d.setDate(d.getDate()-1);} return c; }
@@ -483,7 +489,7 @@ function renderHeader(){
 function renderHoje(){ renderHeader(); renderWeekFocus(); renderQuickActs(); renderHabits(); renderLog(); }
 function renderWeekFocus(){
   const C=document.getElementById('weekFocus'); C.innerHTML='';
-  if(!S.week.length){ C.innerHTML='<div class="card" style="color:var(--mut);font-size:13px">Você ainda não definiu metas da semana. Vá em <b>🧭 Jornada</b> e escreva 2-3 pequenas.</div>'; return; }
+  if(!S.week.length){ C.innerHTML='<div class="card" style="color:var(--mut);font-size:13px">Você ainda não definiu metas do mês. Vá em <b>🧭 Jornada</b> e escreva 2-3 pequenas.</div>'; return; }
   const card=document.createElement('div'); card.className='card';
   S.week.forEach(m=>{
     const row=document.createElement('div'); row.className='meta'+(m.done?' done':'');
@@ -529,6 +535,7 @@ function timeAgo(ts){ const s=(Date.now()-ts)/1000;
 function renderJornada(){
   document.getElementById('qLabel').textContent=quarterLabel();
   document.getElementById('mLabel').textContent=monthName();
+  document.getElementById('mLabel2').textContent=monthName();
   bindField('visionYear',()=>S.vision.year,v=>S.vision.year=v);
   bindField('goalQuarter',()=>S.goals.quarter,v=>S.goals.quarter=v);
   bindField('goalMonth',()=>S.goals.month,v=>S.goals.month=v);
@@ -549,7 +556,7 @@ function renderWeekMetas(){
     row.querySelector('.del').onclick=()=>{ S.week=S.week.filter(x=>x.id!==m.id); save(); renderWeekMetas(); };
     C.appendChild(row); });
 }
-function addMeta(){ const t=prompt('Nova meta desta semana (pequena e concreta):'); if(!t)return;
+function addMeta(){ const t=prompt('Nova meta deste mês (pequena e concreta):'); if(!t)return;
   S.week.push({id:'m'+Date.now(),t,done:false}); save(); renderWeekMetas(); }
 function toggleMeta(id){ const m=S.week.find(x=>x.id===id); if(!m)return; m.done=!m.done;
   if(m.done){ S.xp+=15; S.log.unshift({day:dayStr(),ts:Date.now(),nm:'Meta: '+m.t,xp:15}); toast('✅ Meta conquistada!',m.t); }
@@ -657,7 +664,7 @@ function renderEu(){
   bindField('idVerse',()=>S.identity.verse,v=>S.identity.verse=v);
   bindField('anHoje',()=>S.anamnese.hoje,v=>S.anamnese.hoje=v);
   bindField('anForcas',()=>S.anamnese.forcas,v=>S.anamnese.forcas=v);
-  renderEvo(); renderAchs();
+  renderEvo(); renderAchs(); renderCloud();
 }
 function renderEvo(){
   const C=document.getElementById('evoPanel'); C.innerHTML='';
@@ -696,14 +703,92 @@ function toast(msg,lv){ const t=document.getElementById('toast');
   document.getElementById('toastMsg').textContent=msg; document.getElementById('toastLv').textContent=lv||'';
   t.classList.toggle('levelup',!!lv); t.classList.add('show');
   clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('show'),lv?2600:1600); }
-function newWeek(){ if(confirm('Começar uma nova semana? (desmarca as metas da semana)')){ S.week.forEach(m=>m.done=false); S.weekKey=weekKey(); save(); renderHoje(); toast('Nova semana 🌱'); } }
+function newMonth(){ if(confirm('Começar um novo mês? (desmarca as metas do mês)')){ S.week.forEach(m=>m.done=false); S.weekKey=monthKey(); save(); renderHoje(); toast('Novo mês 🌱'); } }
 function exportData(){ const b=new Blob([JSON.stringify(S)],{type:'application/json'});
   const u=URL.createObjectURL(b),a=document.createElement('a'); a.href=u; a.download='minha-jornada-backup.json'; a.click(); URL.revokeObjectURL(u); }
 function importData(){ const i=document.createElement('input'); i.type='file'; i.accept='.json';
   i.onchange=e=>{ const f=e.target.files[0]; if(!f)return; const r=new FileReader();
     r.onload=()=>{ try{ S=JSON.parse(r.result); save(); renderHoje(); toast('Dados importados 💛'); }catch(err){ alert('Arquivo inválido'); } }; r.readAsText(f); }; i.click(); }
 
-renderHoje(); checkAchs();
+// ---------- SINCRONIZAÇÃO NA NUVEM (Firebase RTDB + criptografia AES-GCM) ----------
+const FB='https://rifa-mae-default-rtdb.firebaseio.com';
+let cloudCode=localStorage.getItem('jornada_cloud_code')||null;
+let cloudKey=null, cloudPath=null, cloudTimer=null, cloudStatus='off';
+
+async function sha256hex(str){ const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(str));
+  return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join(''); }
+async function deriveKey(code){ const base=await crypto.subtle.importKey('raw',new TextEncoder().encode(code),'PBKDF2',false,['deriveKey']);
+  return crypto.subtle.deriveKey({name:'PBKDF2',salt:new TextEncoder().encode('minha-jornada-salt-v2'),iterations:100000,hash:'SHA-256'},
+    base,{name:'AES-GCM',length:256},false,['encrypt','decrypt']); }
+async function encPack(obj){ const iv=crypto.getRandomValues(new Uint8Array(12));
+  const ct=await crypto.subtle.encrypt({name:'AES-GCM',iv},cloudKey,new TextEncoder().encode(JSON.stringify(obj)));
+  return {iv:[...iv],ct:btoa(String.fromCharCode(...new Uint8Array(ct)))}; }
+async function decPack(p){ const iv=new Uint8Array(p.iv);
+  const ct=Uint8Array.from(atob(p.ct),c=>c.charCodeAt(0));
+  const pt=await crypto.subtle.decrypt({name:'AES-GCM',iv},cloudKey,ct);
+  return JSON.parse(new TextDecoder().decode(pt)); }
+async function cloudSetup(code){ cloudCode=code; cloudKey=await deriveKey(code); cloudPath=await sha256hex('jornada:'+code);
+  localStorage.setItem('jornada_cloud_code',code); }
+async function cloudPull(){ if(!cloudCode)return null;
+  try{ const r=await fetch(FB+'/jornada/'+cloudPath+'.json',{cache:'no-store'}); const d=await r.json();
+    if(!d)return null; return await decPack(d); }catch(e){ return null; } }
+async function cloudPush(){ if(!cloudCode)return; cloudStatus='syncing'; renderCloud();
+  try{ const pack=await encPack(S);
+    const r=await fetch(FB+'/jornada/'+cloudPath+'.json',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(pack)});
+    cloudStatus=r.ok?'ok':'error'; }catch(e){ cloudStatus='offline'; } renderCloud(); }
+function cloudPushDebounced(){ if(!cloudCode)return; clearTimeout(cloudTimer); cloudTimer=setTimeout(cloudPush,1500); }
+async function cloudInit(){ if(!cloudCode)return;
+  try{ await cloudSetup(cloudCode); const remote=await cloudPull();
+    if(remote && (remote.updatedAt||0)>(S.updatedAt||0)){ S=remote; localStorage.setItem(KEY,JSON.stringify(S)); renderHoje(); }
+    cloudStatus='ok'; cloudPush(); }catch(e){ cloudStatus='offline'; }
+  renderCloud(); }
+function genCode(){ const a=new Uint8Array(12); crypto.getRandomValues(a);
+  const al='abcdefghjkmnpqrstuvwxyz23456789'; const s=[...a].map(x=>al[x%al.length]).join('');
+  return 'jor-'+s.slice(0,4)+'-'+s.slice(4,8)+'-'+s.slice(8,12); }
+
+function renderCloud(){ const C=document.getElementById('cloudCard'); if(!C)return;
+  if(!cloudCode){
+    C.innerHTML=`<div class="card"><h3>☁️ Guardar na nuvem</h3>
+      <div style="font-size:12.5px;color:var(--mut);line-height:1.5;margin:6px 0 12px">Ative pra seus dados salvarem online e abrirem em qualquer aparelho. Tudo é <b>criptografado</b> com um código só seu — nem eu consigo ler o conteúdo.</div>
+      <button class="btnp" id="cbNew">Ativar sincronização</button>
+      <button class="addbtn" id="cbHas">Já tenho um código (outro aparelho)</button></div>`;
+    C.querySelector('#cbNew').onclick=cloudActivateFlow;
+    C.querySelector('#cbHas').onclick=cloudConnectFlow;
+  }else{
+    const map={off:'pronto',ok:'✓ tudo sincronizado',syncing:'enviando…',error:'erro ao enviar',offline:'sem conexão — salvo aqui'};
+    C.innerHTML=`<div class="card"><h3>☁️ Nuvem ativa</h3>
+      <div style="font-size:12.5px;color:var(--mut);margin:6px 0 10px">Status: <b style="color:var(--green1)">${map[cloudStatus]||'pronto'}</b></div>
+      <div style="font-size:11px;color:var(--mut2);margin-bottom:4px">SEU CÓDIGO — guarde com carinho</div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <code style="flex:1;background:rgba(0,0,0,.3);padding:9px 11px;border-radius:10px;font-size:13px;letter-spacing:1px;user-select:all">${cloudCode}</code>
+        <button class="cbtn" style="flex:0 0 auto;padding:9px 12px" id="cbCopy">copiar</button></div>
+      <button class="addbtn" id="cbOff">desconectar deste aparelho</button></div>`;
+    C.querySelector('#cbCopy').onclick=()=>{ try{navigator.clipboard.writeText(cloudCode);}catch(e){} toast('Código copiado 💛'); };
+    C.querySelector('#cbOff').onclick=()=>{ if(confirm('Desconectar a nuvem deste aparelho? Seus dados continuam salvos aqui e na nuvem.')){ cloudCode=null;cloudKey=null;localStorage.removeItem('jornada_cloud_code'); renderCloud(); } };
+  }
+}
+function cloudActivateFlow(){ const code=genCode(); const B=document.getElementById('sheet2Body');
+  B.innerHTML=`<h3>☁️ Seu código de sincronização</h3>
+    <p class="sub">Este código protege e sincroniza seus dados. <b>Anote em lugar seguro</b> (bloco de notas, e-mail pra você mesma) — sem ele os dados na nuvem não voltam.</p>
+    <div style="text-align:center;font-size:22px;font-weight:800;letter-spacing:2px;background:rgba(0,0,0,.3);padding:16px;border-radius:14px;margin-bottom:8px;user-select:all">${code}</div>
+    <button class="cbtn" id="cbCopy2" style="width:100%;margin-bottom:10px">copiar código</button>
+    <button class="btnp" id="cbGo">Já anotei — ativar nuvem</button>`;
+  B.querySelector('#cbCopy2').onclick=()=>{ try{navigator.clipboard.writeText(code);}catch(e){} toast('Copiado 💛'); };
+  B.querySelector('#cbGo').onclick=async()=>{ await cloudSetup(code); closeSheet('sheetBack2'); renderCloud(); await cloudPush(); toast('☁️ Nuvem ativada!','Seus dados salvam online agora'); };
+  openSheet('sheetBack2'); }
+function cloudConnectFlow(){ const B=document.getElementById('sheet2Body');
+  B.innerHTML=`<h3>Conectar com meu código</h3>
+    <p class="sub">Digite o código criado no outro aparelho pra trazer seus dados pra cá.</p>
+    <input class="fld" id="cbCode" placeholder="jor-xxxx-xxxx-xxxx" autocapitalize="off" autocorrect="off" spellcheck="false">
+    <button class="btnp" id="cbConnect" style="margin-top:10px">Conectar e baixar</button>`;
+  B.querySelector('#cbConnect').onclick=async()=>{ const code=B.querySelector('#cbCode').value.trim(); if(!code)return;
+    await cloudSetup(code); const remote=await cloudPull();
+    if(remote){ S=remote; localStorage.setItem(KEY,JSON.stringify(S)); closeSheet('sheetBack2'); go('hoje'); renderCloud(); cloudStatus='ok'; toast('☁️ Dados baixados!','Bem-vinda de volta 💛'); }
+    else{ if(confirm('Não achei dados nesse código. Usar este código para ESTE aparelho (envia os dados de agora)?')){ closeSheet('sheetBack2'); await cloudPush(); renderCloud(); toast('☁️ Nuvem ativada'); }
+      else{ cloudCode=null;cloudKey=null;localStorage.removeItem('jornada_cloud_code'); } } };
+  openSheet('sheetBack2'); }
+
+renderHoje(); checkAchs(); cloudInit();
 </script>
 </body>
 </html>
