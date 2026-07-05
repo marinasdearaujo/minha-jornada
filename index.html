@@ -233,6 +233,9 @@
     <div class="hint">Marcos que você quer alcançar. Conquiste no seu ritmo.</div>
     <div class="card"><div id="milestones"></div>
       <button class="addlink" onclick="addMilestone()">+ milestone</button></div>
+
+    <button class="btnp" style="margin-top:16px" onclick="saveAll()">💾 Salvar tudo</button>
+    <div class="depend" style="margin-top:8px">Tudo já é salvo automaticamente neste aparelho. Este botão é só pra sua tranquilidade 💛</div>
   </section>
 
   <!-- ============ DIÁRIO ============ -->
@@ -282,6 +285,8 @@
 
     <h2 class="sec">Conquistas</h2>
     <div class="ach-grid" id="achs"></div>
+
+    <button class="btnp" style="margin-top:16px" onclick="saveAll()">💾 Salvar tudo</button>
 
     <div class="footlinks">
       <a onclick="exportData()">exportar backup</a>
@@ -530,7 +535,12 @@ function renderJornada(){
   renderWeekMetas(); renderChallenges(); renderMilestones();
 }
 function bindField(id,get,set){ const el=document.getElementById(id); el.value=get()||'';
+  el.oninput=()=>{ set(el.value); save(); };
   el.onchange=()=>{ set(el.value); save(); checkAchs(); }; }
+function saveAll(){ const a=document.activeElement; if(a&&a.blur)a.blur();
+  ['visionYear','goalQuarter','goalMonth','idFrase','idMulher','idVerse','anHoje','anForcas'].forEach(id=>{
+    const el=document.getElementById(id); if(el&&el.oninput) el.oninput(); });
+  save(); checkAchs(); toast('💾 Tudo salvo','Guardado neste aparelho 💛'); }
 function renderWeekMetas(){
   const C=document.getElementById('weekMetas'); C.innerHTML='';
   S.week.forEach(m=>{ const row=document.createElement('div'); row.className='meta'+(m.done?' done':'');
