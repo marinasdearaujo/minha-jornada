@@ -65,6 +65,17 @@
   .casc.c-m .lbl b{color:var(--violet2)} .casc.c-w .lbl b{color:var(--green1)}
   .casc .lbl span{font-size:11px;color:var(--mut2)}
 
+  /* calendar */
+  .cal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+  .cal-nav{background:rgba(255,255,255,.06);border:1px solid var(--line);color:var(--txt);border-radius:9px;width:32px;height:30px;font-size:18px;font-weight:800;cursor:pointer;line-height:1}
+  .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+  .cal-wd{text-align:center;font-size:10px;color:var(--mut2);font-weight:800;padding-bottom:2px}
+  .cal-cell{aspect-ratio:1;display:grid;place-items:center;font-size:12px;border-radius:9px;color:var(--mut);background:rgba(255,255,255,.03)}
+  .cal-cell.empty{background:none}
+  .cal-cell.on{background:linear-gradient(135deg,var(--green1),var(--green2));color:#06281f;font-weight:800;box-shadow:0 3px 10px rgba(52,211,153,.25)}
+  .cal-cell.today{box-shadow:0 0 0 2px var(--gold)}
+  .cal-cell.on.today{box-shadow:0 0 0 2px var(--gold),0 3px 10px rgba(52,211,153,.25)}
+
   /* week metas */
   .meta{display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:1px solid var(--line);font-size:14px}
   .meta:last-of-type{border-bottom:none}
@@ -151,7 +162,7 @@
   .btnp{background:linear-gradient(135deg,var(--gold),var(--amber));color:#241500;border:none;border-radius:12px;padding:13px 16px;font-weight:800;cursor:pointer;width:100%;font-size:15px;margin-top:6px}
   .addbtn{width:100%;margin-top:8px;background:transparent;border:1.5px dashed var(--line);color:var(--mut);border-radius:14px;padding:12px;font-weight:700;cursor:pointer;font-size:13px}
 
-  .fab{position:fixed;left:50%;transform:translateX(-50%);bottom:82px;z-index:40;
+  .fab{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(84px + env(safe-area-inset-bottom));z-index:40;
     background:linear-gradient(135deg,var(--gold),var(--amber));color:#241500;border:none;border-radius:30px;
     padding:13px 24px;font-size:14px;font-weight:800;box-shadow:0 10px 30px rgba(255,157,77,.45);cursor:pointer}
   .fab:active{transform:translateX(-50%) scale(.96)}
@@ -182,6 +193,23 @@
 
   <!-- ============ HOJE ============ -->
   <section class="page on" id="p-hoje">
+    <h2 class="sec">Meu calendário de ofensiva</h2>
+    <div class="hint">Cada dia que você registra algo acende 🟢. Veja sua sequência crescer!</div>
+    <div class="card">
+      <div class="cal-head">
+        <button class="cal-nav" onclick="calShift(-1)">‹</button>
+        <div style="text-align:center">
+          <div id="calMonth" style="font-weight:800;font-size:14px"></div>
+          <div style="font-size:11.5px;color:var(--amber);font-weight:800;margin-top:1px">🔥 <span id="calStreak">0</span> dias seguidos</div>
+        </div>
+        <button class="cal-nav" onclick="calShift(1)">›</button>
+      </div>
+      <div class="cal-grid" style="margin-bottom:6px">
+        <div class="cal-wd">D</div><div class="cal-wd">S</div><div class="cal-wd">T</div><div class="cal-wd">Q</div><div class="cal-wd">Q</div><div class="cal-wd">S</div><div class="cal-wd">S</div>
+      </div>
+      <div class="cal-grid" id="calGrid"></div>
+    </div>
+
     <h2 class="sec">Meu foco do mês</h2>
     <div class="hint">As metas que você definiu na aba Jornada. Marque conforme conquista.</div>
     <div id="weekFocus"></div>
@@ -483,10 +511,33 @@ function renderHeader(){
   const h=new Date().getHours();
   document.getElementById('greet').textContent=h<12?'Bom dia, guerreira':h<18?'Boa tarde, Marina':'Boa noite — orgulho da sua caminhada';
   document.getElementById('verse').textContent=VERSES[new Date().getDay()%VERSES.length];
+  renderCalendar();
 }
 
 // ---------- HOJE ----------
 function renderHoje(){ renderHeader(); renderWeekFocus(); renderQuickActs(); renderHabits(); renderLog(); }
+let calOffset=0;
+function calShift(d){ calOffset+=d; renderCalendar(); }
+function renderCalendar(){
+  const G=document.getElementById('calGrid'); if(!G)return;
+  const base=new Date(); base.setDate(1); base.setMonth(base.getMonth()+calOffset);
+  const year=base.getFullYear(), month=base.getMonth();
+  document.getElementById('calMonth').textContent=monthName2(month)+' '+year;
+  document.getElementById('calStreak').textContent=streak();
+  const active=new Set(S.log.map(l=>l.day));
+  const firstWd=new Date(year,month,1).getDay();
+  const totalDays=new Date(year,month+1,0).getDate();
+  const today=dayStr();
+  let html='';
+  for(let i=0;i<firstWd;i++) html+='<div class="cal-cell empty"></div>';
+  for(let d=1;d<=totalDays;d++){
+    const key=year+'-'+(month+1)+'-'+d;
+    const on=active.has(key), isToday=key===today;
+    html+=`<div class="cal-cell${on?' on':''}${isToday?' today':''}">${d}</div>`;
+  }
+  G.innerHTML=html;
+}
+function monthName2(m){ return ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'][m]; }
 function renderWeekFocus(){
   const C=document.getElementById('weekFocus'); C.innerHTML='';
   if(!S.week.length){ C.innerHTML='<div class="card" style="color:var(--mut);font-size:13px">Você ainda não definiu metas do mês. Vá em <b>🧭 Jornada</b> e escreva 2-3 pequenas.</div>'; return; }
