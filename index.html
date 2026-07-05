@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0e0b1a">
+<title>Minha Jornada</title>
+<style>
+  :root{
+    --bg:#0e0b1a; --bg2:#15112a; --card:#1b1636; --card2:#221b45;
+    --line:rgba(255,255,255,.08); --txt:#f2eefe; --mut:#a89fc9; --mut2:#6f6699;
+    --corpo1:#ff6b6b; --corpo2:#ff9e6b;
+    --mente1:#7c6bff; --mente2:#b06bff;
+    --espirito1:#ffcf5c; --espirito2:#ff9d4d;
+    --aventura1:#34d399; --aventura2:#22b8c1;
+    --gold:#ffd76a;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0}
+  body{
+    background:radial-gradient(1200px 700px at 15% -10%,#241a4d 0%,transparent 55%),
+               radial-gradient(1000px 600px at 100% 0%,#1a2d4a 0%,transparent 50%),
+               var(--bg);
+    color:var(--txt);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    min-height:100vh; padding:0 0 90px;
+  }
+  .wrap{max-width:640px;margin:0 auto;padding:0 16px}
+  header.top{padding:24px 16px 8px;text-align:center}
+  .greet{color:var(--mut);font-size:14px;letter-spacing:.3px}
+  .appname{font-size:26px;font-weight:800;letter-spacing:-.5px;margin:2px 0 0}
+  .appname .spark{background:linear-gradient(90deg,var(--gold),#ff9d4d);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+
+  /* hero character */
+  .hero{
+    margin:16px 0 18px;background:linear-gradient(160deg,var(--card2),var(--card));
+    border:1px solid var(--line);border-radius:22px;padding:18px;position:relative;overflow:hidden;
+  }
+  .hero:before{content:"";position:absolute;inset:-40% -10% auto auto;width:220px;height:220px;
+    background:radial-gradient(circle,rgba(255,215,106,.18),transparent 70%);pointer-events:none}
+  .hero-row{display:flex;align-items:center;gap:16px}
+  .avatar{
+    width:74px;height:74px;flex:0 0 74px;border-radius:20px;display:grid;place-items:center;font-size:34px;
+    background:conic-gradient(from 200deg,var(--corpo1),var(--mente2),var(--espirito1),var(--aventura1),var(--corpo1));
+    box-shadow:0 8px 30px rgba(124,107,255,.35);position:relative
+  }
+  .avatar span{width:64px;height:64px;border-radius:16px;background:var(--card);display:grid;place-items:center}
+  .hero-info{flex:1;min-width:0}
+  .title{font-size:13px;color:var(--gold);font-weight:700;letter-spacing:.3px}
+  .name{font-size:22px;font-weight:800;margin:1px 0 6px}
+  .lvline{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--mut)}
+  .lvbadge{background:rgba(255,255,255,.08);border:1px solid var(--line);border-radius:20px;padding:3px 10px;font-weight:700;color:var(--txt);font-size:12px}
+  .xpbar{height:9px;border-radius:20px;background:rgba(255,255,255,.08);margin-top:10px;overflow:hidden}
+  .xpbar>i{display:block;height:100%;border-radius:20px;background:linear-gradient(90deg,var(--gold),#ff9d4d);width:0;transition:width .6s cubic-bezier(.2,.9,.2,1)}
+  .hero-stats{display:flex;gap:10px;margin-top:14px}
+  .stat{flex:1;background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:14px;padding:9px 6px;text-align:center}
+  .stat b{display:block;font-size:19px;font-weight:800}
+  .stat small{color:var(--mut);font-size:10.5px;letter-spacing:.3px}
+  .fire{color:#ff8a4d}
+
+  h2.sec{font-size:13px;text-transform:uppercase;letter-spacing:1.4px;color:var(--mut2);margin:22px 4px 10px;font-weight:800}
+
+  /* roadmap */
+  .roadhint{font-size:12px;color:var(--mut);margin:0 4px 12px;line-height:1.5}
+  .phase{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:13px 14px;margin-bottom:10px}
+  .ph-h{font-weight:800;font-size:14.5px}
+  .ph-s{font-size:11.5px;color:var(--mut);margin:2px 0 8px;line-height:1.35}
+  .step{display:flex;align-items:center;gap:10px;padding:7px 0;cursor:pointer;font-size:13.5px}
+  .step .dot{width:20px;flex:0 0 20px;text-align:center;font-size:15px}
+  .step.s-active .st{color:var(--txt);font-weight:600}
+  .step.s-active .dot{color:var(--aventura1)}
+  .step.s-soon .st{color:var(--mut)}
+  .step.s-soon .dot{color:var(--gold)}
+  .step.s-done .st{color:var(--mut2);text-decoration:line-through}
+  .step.s-done .dot{color:var(--aventura1)}
+  .st{flex:1}
+  .ph-add{background:transparent;border:none;color:var(--mut2);font-size:12px;font-weight:700;cursor:pointer;padding:6px 0 0}
+
+  /* attribute cards */
+  .attrs{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .attr{border-radius:18px;padding:14px;border:1px solid var(--line);position:relative;overflow:hidden;cursor:pointer;
+    background:var(--card);transition:transform .12s ease}
+  .attr:active{transform:scale(.98)}
+  .attr .glow{position:absolute;inset:auto -30% -60% -30%;height:120px;filter:blur(30px);opacity:.5;border-radius:50%}
+  .attr-top{display:flex;justify-content:space-between;align-items:flex-start}
+  .attr-ic{font-size:24px}
+  .attr-lv{font-size:11px;font-weight:800;padding:3px 8px;border-radius:20px;background:rgba(255,255,255,.1)}
+  .attr-nm{font-weight:800;font-size:15px;margin:10px 0 2px}
+  .attr-sub{font-size:11px;color:var(--mut);min-height:26px;line-height:1.35}
+  .attr-bar{height:7px;border-radius:20px;background:rgba(0,0,0,.3);margin-top:9px;overflow:hidden}
+  .attr-bar>i{display:block;height:100%;border-radius:20px;width:0;transition:width .6s}
+  .a-corpo .glow,.a-corpo .attr-bar>i{background:linear-gradient(90deg,var(--corpo1),var(--corpo2))}
+  .a-mente .glow,.a-mente .attr-bar>i{background:linear-gradient(90deg,var(--mente1),var(--mente2))}
+  .a-espirito .glow,.a-espirito .attr-bar>i{background:linear-gradient(90deg,var(--espirito1),var(--espirito2))}
+  .a-aventura .glow,.a-aventura .attr-bar>i{background:linear-gradient(90deg,var(--aventura1),var(--aventura2))}
+  .a-corpo .attr-lv{color:var(--corpo2)} .a-mente .attr-lv{color:var(--mente2)}
+  .a-espirito .attr-lv{color:var(--espirito1)} .a-aventura .attr-lv{color:var(--aventura1)}
+
+  /* habits */
+  .habit{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px 14px;margin-bottom:9px}
+  .habit .hic{font-size:22px;width:26px;text-align:center}
+  .habit .hb{flex:1;min-width:0}
+  .habit .hn{font-weight:700;font-size:14.5px}
+  .habit .hs{font-size:11.5px;color:var(--mut);margin-top:2px}
+  .habit .streak{font-size:12px;font-weight:800;color:#ff8a4d;margin-right:4px;white-space:nowrap}
+  .check{width:40px;height:40px;flex:0 0 40px;border-radius:12px;border:2px solid var(--line);background:rgba(255,255,255,.03);
+    display:grid;place-items:center;font-size:20px;color:var(--mut2);cursor:pointer;transition:.15s}
+  .check.done{background:linear-gradient(135deg,var(--aventura1),var(--aventura2));border-color:transparent;color:#06281f;font-weight:900}
+  .check:active{transform:scale(.9)}
+
+  /* missions */
+  .mission{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:13px 14px;margin-bottom:9px}
+  .m-top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+  .m-nm{font-weight:700;font-size:14px}
+  .m-ct{font-size:12px;color:var(--mut);font-weight:700;white-space:nowrap}
+  .m-bar{height:8px;border-radius:20px;background:rgba(0,0,0,.3);margin-top:9px;overflow:hidden}
+  .m-bar>i{display:block;height:100%;border-radius:20px;background:linear-gradient(90deg,var(--mente1),var(--mente2));width:0;transition:width .5s}
+  .m-done .m-bar>i{background:linear-gradient(90deg,var(--aventura1),var(--aventura2))}
+  .m-plus{margin-left:8px;background:rgba(255,255,255,.08);border:1px solid var(--line);color:var(--txt);border-radius:10px;
+    width:30px;height:26px;font-size:16px;font-weight:800;cursor:pointer}
+
+  /* log buttons grid */
+  .modal-back{position:fixed;inset:0;background:rgba(6,4,16,.72);backdrop-filter:blur(6px);z-index:40;display:none;
+    align-items:flex-end;justify-content:center}
+  .modal-back.open{display:flex}
+  .sheet{background:var(--bg2);border:1px solid var(--line);border-radius:26px 26px 0 0;width:100%;max-width:640px;
+    max-height:82vh;overflow:auto;padding:8px 16px 30px;animation:up .25s ease}
+  @keyframes up{from{transform:translateY(100%)}to{transform:translateY(0)}}
+  .grab{width:44px;height:5px;border-radius:20px;background:rgba(255,255,255,.2);margin:8px auto 6px}
+  .sheet h3{margin:6px 4px 4px;font-size:18px}
+  .sheet p.sub{margin:0 4px 12px;color:var(--mut);font-size:13px}
+  .grp{margin:14px 0 4px;font-size:12px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:var(--mut2)}
+  .acts{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+  .act{display:flex;align-items:center;gap:9px;background:var(--card);border:1px solid var(--line);border-radius:14px;
+    padding:11px 12px;cursor:pointer;transition:.12s;text-align:left}
+  .act:active{transform:scale(.96)}
+  .act .aic{font-size:20px}
+  .act .an{font-size:13px;font-weight:600;line-height:1.15;flex:1}
+  .act .ax{font-size:11px;font-weight:800;color:var(--gold);white-space:nowrap}
+  .addbtn{width:100%;margin-top:10px;background:transparent;border:1.5px dashed var(--line);color:var(--mut);
+    border-radius:14px;padding:12px;font-weight:700;cursor:pointer;font-size:13px}
+
+  /* achievements */
+  .ach-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+  .ach{aspect-ratio:1;border-radius:16px;background:var(--card);border:1px solid var(--line);display:grid;place-items:center;
+    text-align:center;padding:6px;position:relative;filter:grayscale(1);opacity:.4}
+  .ach.on{filter:none;opacity:1;background:linear-gradient(160deg,var(--card2),var(--card));box-shadow:0 6px 18px rgba(0,0,0,.3)}
+  .ach .aemo{font-size:26px}
+  .ach .atx{font-size:9px;color:var(--mut);margin-top:3px;line-height:1.1}
+  .ach.on .atx{color:var(--txt)}
+
+  /* log history */
+  .logrow{display:flex;justify-content:space-between;gap:10px;padding:10px 4px;border-bottom:1px solid var(--line);font-size:13px}
+  .logrow small{color:var(--mut2);font-size:11px}
+  .logrow b{color:var(--gold);font-weight:800;white-space:nowrap}
+
+  /* FAB */
+  .fab{position:fixed;left:50%;transform:translateX(-50%);bottom:22px;z-index:30;
+    background:linear-gradient(135deg,var(--gold),#ff9d4d);color:#241500;border:none;border-radius:30px;
+    padding:15px 26px;font-size:15px;font-weight:800;box-shadow:0 10px 30px rgba(255,157,77,.45);cursor:pointer}
+  .fab:active{transform:translateX(-50%) scale(.96)}
+
+  /* toast */
+  .toast{position:fixed;left:50%;transform:translateX(-50%) translateY(-20px);bottom:96px;z-index:60;
+    background:var(--card2);border:1px solid var(--line);border-radius:16px;padding:12px 18px;font-weight:800;
+    box-shadow:0 12px 34px rgba(0,0,0,.5);opacity:0;transition:.35s;text-align:center;min-width:180px}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  .toast .big{font-size:15px} .toast .lv{color:var(--gold);font-size:13px;margin-top:3px;display:none}
+  .toast.levelup .lv{display:block}
+
+  .footlinks{text-align:center;margin:26px 0 4px;font-size:12px;color:var(--mut2)}
+  .footlinks a{color:var(--mut);text-decoration:none;margin:0 8px;cursor:pointer;border-bottom:1px dotted var(--mut2)}
+  .verse{text-align:center;color:var(--mut);font-size:12.5px;font-style:italic;margin:16px 8px 0;line-height:1.5}
+
+  input.mini{background:var(--card);border:1px solid var(--line);color:var(--txt);border-radius:10px;padding:9px 11px;font-size:14px;width:100%;margin:6px 0}
+  .rowb{display:flex;gap:8px}
+  .btnp{background:linear-gradient(135deg,var(--gold),#ff9d4d);color:#241500;border:none;border-radius:12px;padding:11px 16px;font-weight:800;cursor:pointer;flex:1}
+  .btns{background:rgba(255,255,255,.06);color:var(--txt);border:1px solid var(--line);border-radius:12px;padding:11px 16px;font-weight:700;cursor:pointer}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="greet" id="greet">Que bom te ver por aqui</div>
+    <div class="appname">Minha <span class="spark">Jornada</span></div>
+  </header>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-row">
+      <div class="avatar"><span id="avatarEmoji">🌱</span></div>
+      <div class="hero-info">
+        <div class="title" id="heroTitle">Semente</div>
+        <div class="name">Marina</div>
+        <div class="lvline"><span class="lvbadge" id="heroLv">Nível 1</span><span id="heroXpTxt">0 / 100 XP</span></div>
+        <div class="xpbar"><i id="heroXp"></i></div>
+      </div>
+    </div>
+    <div class="hero-stats">
+      <div class="stat"><b class="fire" id="stStreak">0</b><small>🔥 OFENSIVA</small></div>
+      <div class="stat"><b id="stTotal">0</b><small>XP TOTAL</small></div>
+      <div class="stat"><b id="stActs">0</b><small>ATIVIDADES</small></div>
+      <div class="stat"><b id="stWeek">0</b><small>ESTA SEMANA</small></div>
+    </div>
+  </section>
+
+  <h2 class="sec">Plano por fases · um passo de cada vez</h2>
+  <div class="roadhint">Comece pequeno. Só suba de fase quando o passo de agora já estiver leve. Toque num passo pra mudar: <b style="color:var(--aventura1)">● fazendo</b> → <b style="color:var(--gold)">○ próximo</b> → <b style="color:var(--mut2)">✓ feito</b>.</div>
+  <div id="roadmap"></div>
+
+  <h2 class="sec">Seus atributos</h2>
+  <div class="attrs" id="attrs"></div>
+
+  <h2 class="sec">Hábitos diários</h2>
+  <div id="habits"></div>
+
+  <h2 class="sec">Missões da semana</h2>
+  <div id="missions"></div>
+
+  <h2 class="sec">Conquistas</h2>
+  <div class="ach-grid" id="achs"></div>
+
+  <h2 class="sec">Histórico recente</h2>
+  <div id="log"></div>
+
+  <div class="verse" id="verse"></div>
+  <div class="footlinks">
+    <a onclick="exportData()">exportar dados</a>
+    <a onclick="importData()">importar</a>
+    <a onclick="resetWeek()">zerar semana</a>
+  </div>
+</div>
+
+<button class="fab" onclick="openLog()">＋ Registrar</button>
+
+<!-- LOG SHEET -->
+<div class="modal-back" id="sheetBack" onclick="if(event.target===this)closeLog()">
+  <div class="sheet">
+    <div class="grab"></div>
+    <h3>O que você viveu?</h3>
+    <p class="sub">Cada gesto conta. Toque pra registrar e ganhar XP.</p>
+    <div id="actGroups"></div>
+  </div>
+</div>
+
+<!-- GENERIC SHEET -->
+<div class="modal-back" id="sheetBack2" onclick="if(event.target===this)closeSheet2()">
+  <div class="sheet">
+    <div class="grab"></div>
+    <div id="sheet2Body"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"><div class="big" id="toastMsg"></div><div class="lv" id="toastLv"></div></div>
+
+<script>
+const KEY='jornada_v1';
+
+const AREAS = {
+  corpo:    {name:'Corpo',    icon:'💪', cls:'a-corpo',    tag:'academia · caminhada · bike · tênis'},
+  mente:    {name:'Mente',    icon:'🧠', cls:'a-mente',    tag:'psicologia · teologia · canto · cerâmica · culinária'},
+  espirito: {name:'Espírito', icon:'🕊️', cls:'a-espirito', tag:'devocional · oração · ministério · relações'},
+  aventura: {name:'Aventura', icon:'🌳', cls:'a-aventura', tag:'Maringá · natureza · lugares novos'},
+};
+
+const DEFAULT_ACTS = [
+  // corpo
+  {area:'corpo', ic:'🏋️', nm:'Academia', xp:30},
+  {area:'corpo', ic:'🚶‍♀️', nm:'Caminhada', xp:15},
+  {area:'corpo', ic:'🚴‍♀️', nm:'Pedalar (bike)', xp:25},
+  {area:'corpo', ic:'🎾', nm:'Tênis', xp:25},
+  // mente
+  {area:'mente', ic:'📖', nm:'Leitura (psicologia)', xp:20},
+  {area:'mente', ic:'✝️', nm:'Estudo de teologia', xp:20},
+  {area:'mente', ic:'🎓', nm:'Aula de curso', xp:25},
+  {area:'mente', ic:'🎤', nm:'Praticar canto', xp:20},
+  {area:'mente', ic:'🏺', nm:'Cerâmica', xp:25},
+  {area:'mente', ic:'🍳', nm:'Receita nova', xp:20},
+  {area:'mente', ic:'✍️', nm:'Escrever poesia', xp:20},
+  // espirito
+  {area:'espirito', ic:'🙏', nm:'Devocional', xp:20},
+  {area:'espirito', ic:'🕯️', nm:'Oração', xp:15},
+  {area:'espirito', ic:'⛪', nm:'Ministério na igreja', xp:30},
+  {area:'espirito', ic:'🤝', nm:'Nutrir uma relação', xp:25},
+  // aventura
+  {area:'aventura', ic:'📍', nm:'Lugar novo em Maringá', xp:30},
+  {area:'aventura', ic:'🌲', nm:'Natureza / trilha', xp:30},
+  {area:'aventura', ic:'☀️', nm:'Passeio ao ar livre', xp:15},
+];
+
+const DEFAULT_HABITS = [
+  {id:'h_dev', area:'espirito', ic:'🙏', nm:'Devocional', xp:20},
+  {id:'h_ex',  area:'corpo',    ic:'🤸‍♀️', nm:'Mexer o corpo', xp:20},
+  {id:'h_read',area:'mente',    ic:'📚', nm:'Ler um pouco', xp:15},
+  {id:'h_grat',area:'espirito', ic:'💛', nm:'Gratidão do dia', xp:10},
+];
+
+// Missões iniciais gentis — começar pequeno e construir consistência.
+const DEFAULT_MISSIONS = [
+  {id:'m_move', area:'corpo',    nm:'Mexer o corpo 3x (foco principal 💪)', target:3, xp:15},
+  {id:'m_walk', area:'aventura', nm:'Caminhada ao ar livre 3x', target:3, xp:10},
+  {id:'m_poem', area:'mente',    nm:'Escrever poesia 1x', target:1, xp:15},
+  {id:'m_read', area:'mente',    nm:'Ler um pouco 3x', target:3, xp:10},
+  {id:'m_dev',  area:'espirito', nm:'Devocional 4x', target:4, xp:15},
+  {id:'m_exp',  area:'mente',    nm:'Experiência do mês (só 1! ✨)', target:1, xp:30},
+];
+
+// Plano por fases — um passo de cada vez. Estados: done / active / soon.
+const DEFAULT_ROADMAP = [
+  {ph:'🌿 Já comecei', sub:'o que já está brotando — só manter', steps:[
+    {t:'Caminhada ao ar livre', s:'active'},
+    {t:'Escrever poesia', s:'active'},
+  ]},
+  {ph:'💪 Meu foco principal', sub:'firmar o exercício até virar hábito antes de somar mais', steps:[
+    {t:'Mexer o corpo 3x na semana', s:'active'},
+    {t:'Academia com constância', s:'soon'},
+  ]},
+  {ph:'📚 Nutrir a mente', sub:'entra quando o corpo já estiver rodando', steps:[
+    {t:'Leitura leve diária', s:'active'},
+    {t:'Uma leitura que me desafie', s:'soon'},
+    {t:'Pesquisar aula de canto', s:'soon'},
+  ]},
+  {ph:'✨ Experiências — 1 por mês', sub:'uma novidade de cada vez, sem pressa', steps:[
+    {t:'Pesquisar curso livre de cerâmica', s:'soon'},
+    {t:'Aula ou receita de culinária', s:'soon'},
+    {t:'Conhecer um lugar novo em Maringá', s:'soon'},
+  ]},
+];
+
+const ACHS = [
+  {id:'first', emo:'✨', tx:'Primeiro passo', on:s=>s.log.length>=1},
+  {id:'s3',    emo:'🔥', tx:'3 dias seguidos', on:s=>streak(s)>=3},
+  {id:'s7',    emo:'🌟', tx:'7 dias seguidos', on:s=>streak(s)>=7},
+  {id:'s30',   emo:'👑', tx:'30 dias!', on:s=>streak(s)>=30},
+  {id:'body5', emo:'💪', tx:'Corpo nv.5', on:s=>lvl(s.xp.corpo).level>=5},
+  {id:'mind5', emo:'🧠', tx:'Mente nv.5', on:s=>lvl(s.xp.mente).level>=5},
+  {id:'sp5',   emo:'🕊️', tx:'Espírito nv.5', on:s=>lvl(s.xp.espirito).level>=5},
+  {id:'adv5',  emo:'🌳', tx:'Aventura nv.5', on:s=>lvl(s.xp.aventura).level>=5},
+  {id:'a50',   emo:'📈', tx:'50 atividades', on:s=>s.log.length>=50},
+  {id:'explorer',emo:'🗺️', tx:'5 lugares novos', on:s=>s.log.filter(l=>l.nm.includes('Lugar novo')||l.nm.includes('passeio')||l.nm.includes('Passeio')).length>=5},
+  {id:'balance',emo:'⚖️', tx:'Tudo em nv.3', on:s=>['corpo','mente','espirito','aventura'].every(a=>lvl(s.xp[a]).level>=3)},
+  {id:'week',  emo:'🏆', tx:'Semana completa', on:s=>s.missions.length>0 && s.missions.every(m=>m.prog>=m.target)},
+];
+
+const TITLES = [
+  [1,'Semente','🌱'],[3,'Broto','🌿'],[6,'Aprendiz','🍃'],[10,'Caminhante','🚶‍♀️'],
+  [15,'Cultivadora','🌼'],[22,'Florescente','🌻'],[30,'Jardineira da Vida','🌳'],[45,'Árvore Frutífera','🌸']
+];
+
+const VERSES = [
+  '"Tudo quanto fizerdes, fazei-o de todo o coração, como para o Senhor." — Cl 3:23',
+  '"Não é bom que o homem esteja só." — Gn 2:18',
+  '"Onde está o teu tesouro, aí estará também o teu coração." — Mt 6:21',
+  '"Aquietai-vos e sabei que eu sou Deus." — Sl 46:10',
+  '"Deleita-te no Senhor, e ele satisfará os desejos do teu coração." — Sl 37:4',
+  '"Cada dia tem o seu próprio cuidado." — Mt 6:34',
+  '"O que planta e o que rega são um; cada um receberá conforme o seu trabalho." — 1Co 3:8',
+];
+
+// ---------- state ----------
+let S = load();
+function load(){
+  let s;
+  try{ s = JSON.parse(localStorage.getItem(KEY)); }catch(e){}
+  if(!s){
+    s = {
+      xp:{corpo:0,mente:0,espirito:0,aventura:0},
+      acts: DEFAULT_ACTS.map((a,i)=>({...a,id:'a'+i})),
+      habits: DEFAULT_HABITS.map(h=>({...h,last:null,streak:0})),
+      missions: DEFAULT_MISSIONS.map(m=>({...m,prog:0})),
+      roadmap: JSON.parse(JSON.stringify(DEFAULT_ROADMAP)),
+      week: weekKey(),
+      log: [],
+      achDone: [],
+    };
+    save(s);
+  }
+  if(!s.roadmap) s.roadmap = JSON.parse(JSON.stringify(DEFAULT_ROADMAP));
+  // week reset
+  if(s.week !== weekKey()){ s.missions.forEach(m=>m.prog=0); s.week=weekKey(); }
+  return s;
+}
+function save(s){ localStorage.setItem(KEY, JSON.stringify(s||S)); }
+
+// ---------- helpers ----------
+function lvl(xp){
+  let level=1, need=100, acc=0;
+  while(xp >= acc+need){ acc+=need; level++; need=Math.round(need*1.32); }
+  return {level, into:xp-acc, need, pct:Math.min(1,(xp-acc)/need)};
+}
+function totalLevel(){
+  const t = S.xp.corpo+S.xp.mente+S.xp.espirito+S.xp.aventura;
+  let level=1, need=200, acc=0;
+  while(t >= acc+need){ acc+=need; level++; need=Math.round(need*1.28); }
+  return {level, into:t-acc, need, total:t};
+}
+function dayStr(d){ d=d||new Date(); return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate(); }
+function weekKey(){ const d=new Date(); const on=new Date(d.getFullYear(),0,1);
+  const w=Math.ceil((((d-on)/86400000)+on.getDay()+1)/7); return d.getFullYear()+'-w'+w; }
+function streak(s){
+  s=s||S;
+  const days=new Set(s.log.map(l=>l.day));
+  let c=0, d=new Date();
+  if(!days.has(dayStr(d))) d.setDate(d.getDate()-1); // allow yesterday-based streak if nothing today yet
+  while(days.has(dayStr(d))){ c++; d.setDate(d.getDate()-1); }
+  return c;
+}
+function titleFor(L){ let t=TITLES[0]; for(const x of TITLES){ if(L>=x[0]) t=x; } return t; }
+
+// ---------- actions ----------
+function addXp(area, amount, name){
+  const before = lvl(S.xp[area]).level;
+  S.xp[area]+=amount;
+  const after = lvl(S.xp[area]).level;
+  S.log.unshift({day:dayStr(), ts:Date.now(), area, nm:name, xp:amount});
+  if(S.log.length>300) S.log.pop();
+  save();
+  render();
+  const levelup = after>before;
+  toast(`+${amount} XP · ${name}`, levelup ? `${AREAS[area].icon} ${AREAS[area].name} subiu pro nível ${after}!` : '');
+  checkAchs();
+}
+
+function doHabit(id){
+  const h=S.habits.find(x=>x.id===id); if(!h) return;
+  const today=dayStr();
+  if(h.last===today){ // undo
+    h.last = h._prev||null; h.streak=Math.max(0,h.streak-1);
+    // remove xp+log for this habit today (best effort)
+    const idx=S.log.findIndex(l=>l.day===today && l.nm===h.nm && l._habit);
+    if(idx>=0){ S.xp[h.area]=Math.max(0,S.xp[h.area]-h.xp); S.log.splice(idx,1);}
+    save(); render(); return;
+  }
+  const yest=new Date(); yest.setDate(yest.getDate()-1);
+  h._prev=h.last;
+  h.streak = (h.last===dayStr(yest)) ? h.streak+1 : 1;
+  h.last=today;
+  S.xp[h.area]+=h.xp;
+  S.log.unshift({day:today, ts:Date.now(), area:h.area, nm:h.nm, xp:h.xp, _habit:true});
+  save(); render();
+  toast(`+${h.xp} XP · ${h.nm}`, h.streak>1?`🔥 ${h.streak} dias seguidos!`:'');
+  checkAchs();
+}
+
+function bumpMission(id,delta){
+  const m=S.missions.find(x=>x.id===id); if(!m) return;
+  const was=m.prog;
+  m.prog=Math.max(0,Math.min(m.target,m.prog+delta));
+  if(delta>0 && m.prog>was){
+    S.xp[m.area]+=m.xp;
+    S.log.unshift({day:dayStr(), ts:Date.now(), area:m.area, nm:'Missão: '+m.nm, xp:m.xp});
+    if(m.prog>=m.target) toast('🏆 Missão concluída!', m.nm);
+    else toast(`+${m.xp} XP`, m.nm);
+  } else if(delta<0 && m.prog<was){
+    S.xp[m.area]=Math.max(0,S.xp[m.area]-m.xp);
+  }
+  save(); render(); checkAchs();
+}
+
+function checkAchs(){
+  let unlocked=null;
+  ACHS.forEach(a=>{ if(!S.achDone.includes(a.id) && a.on(S)){ S.achDone.push(a.id); unlocked=a; } });
+  if(unlocked){ save(); setTimeout(()=>toast(`${unlocked.emo} Conquista!`, unlocked.tx),700); renderAchs(); }
+}
+
+// ---------- render ----------
+function render(){
+  const tl=totalLevel();
+  const tt=titleFor(tl.level);
+  document.getElementById('heroLv').textContent='Nível '+tl.level;
+  document.getElementById('heroXpTxt').textContent=`${tl.into} / ${tl.need} XP`;
+  document.getElementById('heroXp').style.width=(tl.into/tl.need*100)+'%';
+  document.getElementById('heroTitle').textContent=tt[1];
+  document.getElementById('avatarEmoji').textContent=tt[2];
+  document.getElementById('stStreak').textContent=streak();
+  document.getElementById('stTotal').textContent=tl.total;
+  document.getElementById('stActs').textContent=S.log.length;
+  document.getElementById('stWeek').textContent=S.log.filter(l=>sameWeek(l.ts)).length;
+
+  renderRoadmap();
+
+  // attrs
+  const A=document.getElementById('attrs'); A.innerHTML='';
+  Object.keys(AREAS).forEach(k=>{
+    const a=AREAS[k], L=lvl(S.xp[k]);
+    const el=document.createElement('div');
+    el.className='attr '+a.cls;
+    el.onclick=()=>openLogArea(k);
+    el.innerHTML=`<div class="glow"></div>
+      <div class="attr-top"><div class="attr-ic">${a.icon}</div><div class="attr-lv">NV ${L.level}</div></div>
+      <div class="attr-nm">${a.name}</div>
+      <div class="attr-sub">${a.tag}</div>
+      <div class="attr-bar"><i style="width:${L.pct*100}%"></i></div>`;
+    A.appendChild(el);
+  });
+
+  // habits
+  const H=document.getElementById('habits'); H.innerHTML='';
+  const today=dayStr();
+  S.habits.forEach(h=>{
+    const done=h.last===today;
+    const el=document.createElement('div'); el.className='habit';
+    el.innerHTML=`<div class="hic">${h.ic}</div>
+      <div class="hb"><div class="hn">${h.nm}</div><div class="hs">${AREAS[h.area].name} · +${h.xp} XP</div></div>
+      ${h.streak>0?`<div class="streak">🔥 ${h.streak}</div>`:''}
+      <div class="check ${done?'done':''}" data-id="${h.id}">${done?'✓':''}</div>`;
+    el.querySelector('.check').onclick=()=>doHabit(h.id);
+    H.appendChild(el);
+  });
+
+  // missions
+  const M=document.getElementById('missions'); M.innerHTML='';
+  S.missions.forEach(m=>{
+    const done=m.prog>=m.target;
+    const el=document.createElement('div'); el.className='mission'+(done?' m-done':'');
+    el.innerHTML=`<div class="m-top">
+        <div class="m-nm">${AREAS[m.area].icon} ${m.nm}</div>
+        <div style="display:flex;align-items:center">
+          <span class="m-ct">${m.prog}/${m.target}${done?' ✓':''}</span>
+          <button class="m-plus" data-id="${m.id}">＋</button>
+        </div></div>
+      <div class="m-bar"><i style="width:${m.prog/m.target*100}%"></i></div>`;
+    el.querySelector('.m-plus').onclick=()=>bumpMission(m.id,1);
+    el.querySelector('.m-plus').oncontextmenu=(e)=>{e.preventDefault();bumpMission(m.id,-1)};
+    M.appendChild(el);
+  });
+
+  renderAchs();
+  renderLog();
+  document.getElementById('greet').textContent=greetTxt();
+  document.getElementById('verse').textContent=VERSES[new Date().getDay()%VERSES.length];
+}
+
+function sameWeek(ts){ const d=new Date(ts); const on=new Date(d.getFullYear(),0,1);
+  const w=Math.ceil((((d-on)/86400000)+on.getDay()+1)/7); return (d.getFullYear()+'-w'+w)===weekKey(); }
+
+const STEP_ICON={active:'●',soon:'○',done:'✓'};
+const STEP_NEXT={active:'soon',soon:'done',done:'active'};
+function renderRoadmap(){
+  const R=document.getElementById('roadmap'); R.innerHTML='';
+  S.roadmap.forEach((p,pi)=>{
+    const el=document.createElement('div'); el.className='phase';
+    el.innerHTML=`<div class="ph-h">${p.ph}</div><div class="ph-s">${p.sub}</div>`;
+    p.steps.forEach((st,si)=>{
+      const row=document.createElement('div'); row.className='step s-'+st.s;
+      row.innerHTML=`<div class="dot">${STEP_ICON[st.s]}</div><div class="st">${st.t}</div>`;
+      row.onclick=()=>{ st.s=STEP_NEXT[st.s]; if(st.s==='done') toast('✓ Passo conquistado!','Um de cada vez 💛'); save(); renderRoadmap(); };
+      el.appendChild(row);
+    });
+    const add=document.createElement('button'); add.className='ph-add'; add.textContent='+ passo';
+    add.onclick=()=>{ const t=prompt('Novo passo nesta fase:'); if(t){ p.steps.push({t,s:'soon'}); save(); renderRoadmap(); } };
+    el.appendChild(add);
+    R.appendChild(el);
+  });
+}
+function renderAchs(){
+  const G=document.getElementById('achs'); G.innerHTML='';
+  ACHS.forEach(a=>{
+    const on=S.achDone.includes(a.id);
+    const el=document.createElement('div'); el.className='ach'+(on?' on':'');
+    el.innerHTML=`<div class="aemo">${on?a.emo:'🔒'}</div><div class="atx">${a.tx}</div>`;
+    G.appendChild(el);
+  });
+}
+function renderLog(){
+  const L=document.getElementById('log'); L.innerHTML='';
+  if(!S.log.length){ L.innerHTML='<div style="color:var(--mut);font-size:13px;padding:8px 4px">Nada ainda. Toque em <b>＋ Registrar</b> pra começar sua jornada 💛</div>'; return;}
+  S.log.slice(0,12).forEach(l=>{
+    const el=document.createElement('div'); el.className='logrow';
+    el.innerHTML=`<div>${AREAS[l.area].icon} ${l.nm}<br><small>${timeAgo(l.ts)}</small></div><b>+${l.xp}</b>`;
+    L.appendChild(el);
+  });
+}
+function timeAgo(ts){ const s=(Date.now()-ts)/1000;
+  if(s<60)return'agora'; if(s<3600)return Math.floor(s/60)+'min atrás';
+  if(s<86400)return Math.floor(s/3600)+'h atrás'; return Math.floor(s/86400)+'d atrás'; }
+function greetTxt(){ const h=new Date().getHours();
+  if(h<12)return'Bom dia, guerreira'; if(h<18)return'Boa tarde, Marina'; return'Boa noite — orgulho da sua caminhada'; }
+
+// ---------- log sheet ----------
+function openLog(){ buildActGroups(null); document.getElementById('sheetBack').classList.add('open'); }
+function openLogArea(area){ buildActGroups(area); document.getElementById('sheetBack').classList.add('open'); }
+function closeLog(){ document.getElementById('sheetBack').classList.remove('open'); }
+function buildActGroups(filter){
+  const C=document.getElementById('actGroups'); C.innerHTML='';
+  Object.keys(AREAS).forEach(k=>{
+    if(filter && filter!==k) return;
+    const acts=S.acts.filter(a=>a.area===k);
+    const g=document.createElement('div');
+    g.innerHTML=`<div class="grp">${AREAS[k].icon} ${AREAS[k].name}</div><div class="acts"></div>`;
+    const grid=g.querySelector('.acts');
+    acts.forEach(a=>{
+      const b=document.createElement('button'); b.className='act';
+      b.innerHTML=`<span class="aic">${a.ic}</span><span class="an">${a.nm}</span><span class="ax">+${a.xp}</span>`;
+      b.onclick=()=>{ addXp(a.area,a.xp,a.nm); closeLog(); };
+      grid.appendChild(b);
+    });
+    const add=document.createElement('button'); add.className='addbtn'; add.textContent='+ nova atividade em '+AREAS[k].name;
+    add.onclick=()=>newActivity(k);
+    g.appendChild(add);
+    C.appendChild(g);
+  });
+}
+function newActivity(area){
+  const nm=prompt('Nome da atividade:'); if(!nm)return;
+  const xp=parseInt(prompt('Quantos XP vale? (ex: 20)','20'))||20;
+  S.acts.push({id:'a'+Date.now(),area,ic:'⭐',nm,xp}); save();
+  buildActGroups(area);
+}
+
+// ---------- misc ----------
+function toast(msg,lv){
+  const t=document.getElementById('toast');
+  document.getElementById('toastMsg').textContent=msg;
+  document.getElementById('toastLv').textContent=lv||'';
+  t.classList.toggle('levelup',!!lv);
+  t.classList.add('show');
+  clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('show'), lv?2600:1600);
+}
+function resetWeek(){ if(confirm('Zerar o progresso das missões desta semana?')){ S.missions.forEach(m=>m.prog=0); S.week=weekKey(); save(); render(); } }
+function exportData(){
+  const blob=new Blob([JSON.stringify(S)],{type:'application/json'});
+  const u=URL.createObjectURL(blob); const a=document.createElement('a');
+  a.href=u; a.download='minha-jornada-backup.json'; a.click(); URL.revokeObjectURL(u);
+}
+function importData(){
+  const i=document.createElement('input'); i.type='file'; i.accept='.json';
+  i.onchange=e=>{ const f=e.target.files[0]; if(!f)return; const r=new FileReader();
+    r.onload=()=>{ try{ S=JSON.parse(r.result); save(); render(); toast('Dados importados 💛'); }catch(err){ alert('Arquivo inválido'); } };
+    r.readAsText(f); };
+  i.click();
+}
+function closeSheet2(){ document.getElementById('sheetBack2').classList.remove('open'); }
+
+render();
+checkAchs();
+</script>
+</body>
+</html>
