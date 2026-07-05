@@ -114,6 +114,7 @@
   .act:active{transform:scale(.96)}
   .act .aic{font-size:20px} .act .an{font-size:12.5px;font-weight:600;line-height:1.15;flex:1}
   .act .ax{font-size:11px;font-weight:800;color:var(--gold);white-space:nowrap}
+  .act.other{border-style:dashed} .act.other .an{color:var(--mut)}
   .grp{margin:14px 0 8px;font-size:12px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:var(--mut2)}
 
   /* habits */
@@ -559,9 +560,16 @@ function renderQuickActs(){
       b.innerHTML=`<span class="aic">${a.ic}</span><span class="an">${a.nm}</span><span class="ax">+${a.xp}</span>`;
       b.onclick=()=>addXp(a.xp,a.nm); grid.appendChild(b);
     });
+    const ob=document.createElement('button'); ob.className='act other';
+    ob.innerHTML=`<span class="aic">➕</span><span class="an">Outro</span>`;
+    ob.onclick=()=>logOther(g); grid.appendChild(ob);
     const t=document.createElement('div'); t.className='grp'; t.textContent=g;
     C.appendChild(t); C.appendChild(grid);
   });
+}
+function logOther(area){
+  const nm=prompt('O que você fez em '+area+'?'); if(!nm||!nm.trim())return;
+  addXp(15,nm.trim());
 }
 function renderHabits(){
   const H=document.getElementById('habits'); H.innerHTML=''; const today=dayStr();
@@ -742,6 +750,9 @@ function quickLogOpen(){ const C=document.getElementById('actGroups'); C.innerHT
     ACTS.filter(a=>a.area===g).forEach(a=>{ const b=document.createElement('button'); b.className='act';
       b.innerHTML=`<span class="aic">${a.ic}</span><span class="an">${a.nm}</span><span class="ax">+${a.xp}</span>`;
       b.onclick=()=>{ addXp(a.xp,a.nm); closeSheet('sheetBack'); }; grid.appendChild(b); });
+    const ob=document.createElement('button'); ob.className='act other';
+    ob.innerHTML=`<span class="aic">➕</span><span class="an">Outro</span>`;
+    ob.onclick=()=>{ closeSheet('sheetBack'); logOther(g); }; grid.appendChild(ob);
     C.appendChild(grid);
   });
   openSheet('sheetBack');
